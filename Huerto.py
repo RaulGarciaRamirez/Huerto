@@ -41,7 +41,7 @@ def on_message(client, userdata, msg):
         df = df.tail(50)  # Mantener solo los últimos 50 registros
 
 # Crear instancia del cliente MQTT
-client = mqtt.Client(client_id=client_id)
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,client_id=client_id)
 client.username_pw_set(username, password)
 client.on_connect = on_connect
 client.on_message = on_message
@@ -59,10 +59,15 @@ st.title("Monitor de CO2 en Tiempo Real")
 def plot_co2_data():
     st.line_chart(df.set_index('timestamp')['CO2'])
 
+# Espacio reservado para la gráfica
+chart_placeholder = st.empty()
+
 # Bucle principal de la aplicación de Streamlit
 while True:
-    plot_co2_data()
-    time.sleep(5)  # Esperar 5 segundos antes de actualizar
+    if not df.empty:
+        with chart_placeholder:
+            st.line_chart(df.set_index('timestamp')['CO2'])
+    time.sleep(60)  # Esperar 5 segundos antes de actualizar
 
 # Parar el loop del cliente MQTT al finalizar
 client.loop_stop()
