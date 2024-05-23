@@ -72,7 +72,7 @@ if not df.empty:
     with chart_placeholder:
         # Gráfico de CO2 con anomalías resaltadas
         fig, ax = plt.subplots()
-        #ax.plot(df['timestamp'], df['CO2'], label='CO2')
+        ax.plot(df['timestamp'], df['CO2'], label='CO2')
         ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
         ax.set_xlabel('Tiempo')
         ax.set_ylabel('CO2')
@@ -89,7 +89,7 @@ while True:
         df = detect_anomalies(df)
         with chart_placeholder:
             fig, ax = plt.subplots()
-            #ax.plot(df['timestamp'], df['CO2'], label='CO2')
+            ax.plot(df['timestamp'], df['CO2'], label='CO2')
             ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
             ax.set_xlabel('Tiempo')
             ax.set_ylabel('CO2')
