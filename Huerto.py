@@ -5,6 +5,7 @@ import pandas as pd
 import time
 from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 # Petición a la API REST para obtener datos del último mes
 def fetch_data_from_api():
@@ -43,7 +44,15 @@ def process_api_data(api_data):
                     valor = float(valor) if isinstance(valor, (int, float, str)) else None
                     data.append({'timestamp': fecha, 'CO2': valor})
 
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+
+    # Asegurarse de que los datos estén ordenados por timestamp
+    df = df.sort_values(by='timestamp')
+    
+    # Eliminar duplicados
+    df = df.drop_duplicates(subset='timestamp')
+    
+    return df
 
 # Detectar anomalías utilizando DBSCAN
 def detect_anomalies(df, eps=100, min_samples=5000):
@@ -58,26 +67,32 @@ st.title("Monitor de CO2 en Tiempo Real")
 # Espacio reservado para la gráfica
 chart_placeholder = st.empty()
 
+# Función para crear y mostrar la gráfica
+def plot_data(df):
+    fig, ax = plt.subplots()
+    ax.plot(df['timestamp'], df['CO2'], label='CO2')
+    ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
+    ax.set_xlabel('Tiempo')
+    ax.set_ylabel('CO2')
+    ax.legend()
+
+    # Ajustar las etiquetas de las fechas
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.xticks(rotation=45, ha='right', fontsize=8)  # Rotar y ajustar el tamaño de las etiquetas
+
+    st.pyplot(fig)
+
 # Obtener y procesar los datos de la API
 api_data = fetch_data_from_api()
 df = process_api_data(api_data)
-#print(df)
 
 # Detectar anomalías
 df = detect_anomalies(df)
-print(df)
-df.to_csv('huerto.csv', index=False)
-# Mostrar y actualizar la gráfica
+
+# Mostrar la gráfica inicial
 if not df.empty:
-    with chart_placeholder:
-        # Gráfico de CO2 con anomalías resaltadas
-        fig, ax = plt.subplots()
-        ax.plot(df['timestamp'], df['CO2'], label='CO2')
-        ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
-        ax.set_xlabel('Tiempo')
-        ax.set_ylabel('CO2')
-        ax.legend()
-        st.pyplot(fig)
+    plot_data(df)
 else:
     st.write("No hay datos disponibles para mostrar.")
 
@@ -88,11 +103,5 @@ while True:
     if not df.empty:
         df = detect_anomalies(df)
         with chart_placeholder:
-            fig, ax = plt.subplots()
-            ax.plot(df['timestamp'], df['CO2'], label='CO2')
-            ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
-            ax.set_xlabel('Tiempo')
-            ax.set_ylabel('CO2')
-            ax.legend()
-            st.pyplot(fig)
+            plot_data(df)
     time.sleep(60)  # Esperar 60 segundos antes de actualizar
