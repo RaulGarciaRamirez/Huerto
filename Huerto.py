@@ -9,7 +9,7 @@ import matplotlib.dates as mdates
 
 # Petición a la API REST para obtener datos del último mes
 def fetch_data_from_api():
-    mes_pasado = int((datetime.datetime.now() - datetime.timedelta(days=30)).timestamp()) * 1000
+    mes_pasado = int((datetime.datetime.now() - datetime.timedelta(days=7)).timestamp()) * 1000
     url = "https://sensecap.seeed.cc/openapi/list_telemetry_data"
     auth = ('93I2S5UCP1ISEF4F', '6552EBDADED14014B18359DB4C3B6D4B3984D0781C2545B6A33727A4BBA1E46E')
     
@@ -55,7 +55,7 @@ def process_api_data(api_data):
     return df
 
 # Detectar anomalías utilizando DBSCAN
-def detect_anomalies(df, eps=100, min_samples=5000):
+def detect_anomalies(df, eps=5, min_samples=20):
     X = df[['CO2']].values
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     df['anomaly'] = dbscan.fit_predict(X)
@@ -78,7 +78,7 @@ def plot_data(df):
 
     # Ajustar las etiquetas de las fechas
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.xticks(rotation=45, ha='right', fontsize=8)  # Rotar y ajustar el tamaño de las etiquetas
 
     st.pyplot(fig)
@@ -92,16 +92,17 @@ df = detect_anomalies(df)
 
 # Mostrar la gráfica inicial
 if not df.empty:
-    plot_data(df)
+    with chart_placeholder:
+        plot_data(df)
 else:
     st.write("No hay datos disponibles para mostrar.")
 
 # Mantener la aplicación actualizada con los nuevos datos cada minuto
-while True:
-    api_data = fetch_data_from_api()
-    df = process_api_data(api_data)
-    if not df.empty:
-        df = detect_anomalies(df)
-        with chart_placeholder:
-            plot_data(df)
-    time.sleep(60)  # Esperar 60 segundos antes de actualizar
+# while True:
+#     api_data = fetch_data_from_api()
+#     df = process_api_data(api_data)
+#     if not df.empty:
+#         df = detect_anomalies(df)
+#         with chart_placeholder:
+#             plot_data(df)
+#     time.sleep(60)  # Esperar 60 segundos antes de actualizar
