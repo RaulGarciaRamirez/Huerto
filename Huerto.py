@@ -3,6 +3,8 @@ import requests
 import datetime
 import pandas as pd
 import time
+from sklearn.cluster import DBSCAN
+import matplotlib.pyplot as plt
 
 # Petición a la API REST para obtener datos del último mes
 def fetch_data_from_api():
@@ -43,6 +45,13 @@ def process_api_data(api_data):
 
     return pd.DataFrame(data)
 
+# Detectar anomalías utilizando DBSCAN
+def detect_anomalies(df, eps=100, min_samples=5000):
+    X = df[['CO2']].values
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    df['anomaly'] = dbscan.fit_predict(X)
+    return df
+
 # Configuración de la página de Streamlit
 st.title("Monitor de CO2 en Tiempo Real")
 
@@ -52,11 +61,23 @@ chart_placeholder = st.empty()
 # Obtener y procesar los datos de la API
 api_data = fetch_data_from_api()
 df = process_api_data(api_data)
+#print(df)
 
+# Detectar anomalías
+df = detect_anomalies(df)
+print(df)
+df.to_csv('huerto.csv', index=False)
 # Mostrar y actualizar la gráfica
 if not df.empty:
     with chart_placeholder:
-        st.line_chart(df.set_index('timestamp')['CO2'])
+        # Gráfico de CO2 con anomalías resaltadas
+        fig, ax = plt.subplots()
+        #ax.plot(df['timestamp'], df['CO2'], label='CO2')
+        ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
+        ax.set_xlabel('Tiempo')
+        ax.set_ylabel('CO2')
+        ax.legend()
+        st.pyplot(fig)
 else:
     st.write("No hay datos disponibles para mostrar.")
 
@@ -65,6 +86,13 @@ while True:
     api_data = fetch_data_from_api()
     df = process_api_data(api_data)
     if not df.empty:
+        df = detect_anomalies(df)
         with chart_placeholder:
-            st.line_chart(df.set_index('timestamp')['CO2'])
+            fig, ax = plt.subplots()
+            #ax.plot(df['timestamp'], df['CO2'], label='CO2')
+            ax.scatter(df[df['anomaly'] == -1]['timestamp'], df[df['anomaly'] == -1]['CO2'], color='red', label='Anomalías')
+            ax.set_xlabel('Tiempo')
+            ax.set_ylabel('CO2')
+            ax.legend()
+            st.pyplot(fig)
     time.sleep(60)  # Esperar 60 segundos antes de actualizar
