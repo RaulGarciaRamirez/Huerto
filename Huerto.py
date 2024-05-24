@@ -12,7 +12,7 @@ import matplotlib.dates as mdates
 
 # Petición a la API REST para obtener datos del último mes
 def fetch_data_from_api():
-    mes_pasado = int((datetime.datetime.now() - datetime.timedelta(days=30)).timestamp()) * 1000
+    mes_pasado = int((datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()) * 1000
     url = "https://sensecap.seeed.cc/openapi/list_telemetry_data"
     auth = ('93I2S5UCP1ISEF4F', '6552EBDADED14014B18359DB4C3B6D4B3984D0781C2545B6A33727A4BBA1E46E')
     
@@ -116,7 +116,7 @@ def plot_data(df):
     ax.legend()
 
     # Ajustar las etiquetas de las fechas
-    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.xticks(rotation=45, ha='right', fontsize=8)  # Rotar y ajustar el tamaño de las etiquetas
 
@@ -131,7 +131,7 @@ def plot_day_night(df):
     ax.legend()
 
     # Ajustar las etiquetas de las fechas
-    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y'))
     plt.xticks(rotation=45, ha='right', fontsize=8)  # Rotar y ajustar el tamaño de las etiquetas
 
