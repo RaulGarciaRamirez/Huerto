@@ -1,4 +1,5 @@
 streamlit
-paho-mqtt
+requests
 pandas
+scikit-learn
 matplotlib
