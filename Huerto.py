@@ -29,7 +29,8 @@ def fetch_data_from_api(time_start, time_end):
         return None
 
 def process_api_data(api_data):
-    if not api_data:
+    if not api_data or 'data' not in api_data or 'list' not in api_data['data']:
+        st.error("Datos de la API no válidos o incompletos.")
         return pd.DataFrame(columns=['timestamp', 'CO2', 'temperature', 'humidity'])
 
     canal_identificacion = api_data['data']['list'][0]
