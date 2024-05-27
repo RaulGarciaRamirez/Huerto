@@ -3,3 +3,4 @@ requests
 pandas
 scikit-learn
 matplotlib
+streamlit_autorefresh
